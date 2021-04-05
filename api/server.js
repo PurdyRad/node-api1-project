@@ -18,7 +18,7 @@ server.get('/api/users', (req,res) =>{
     })
     .catch(err => {
         console.error('Gerr:', err)
-        res.status(500).json({message: err.message})
+        res.status(500).json({message: "the users information could not be retrieved"})
     })
 })
 
@@ -40,43 +40,56 @@ server.get('/api/users/:id', (req,res) =>{
 // [POST] /api/users	
 server.post('/api/users', (req,res) => {
     const newUser = req.body
-    User.insert(newUser)
-    .then(user => {
-        console.log('postUser:', user)
-        res.status(201).json(user)
-    })
-    .catch(err => {
-        console.error('Posterr:', err)
-        res.status(500).json({message: err.message})
-    })
+    if(!newUser.name || !newUser.bio){
+        res.status(400).json({message: "Please provide name and bio for the user"})
+    }else{
+        User.insert(newUser)
+        .then(user => {
+            console.log('postUser:', user)
+            res.status(201).json(user)
+        })
+        .catch(err => {
+            console.error('Posterr:', err)
+            res.status(500).json({message: "There was an error while saving the user to the databse."})
+        })
+    }
 })
 // [PUT] /api/users/:id	
-server.put('/api/users/:id', (req,res) => {
+server.put('/api/users/:id', async (req,res) => {
+    try{ 
     const {id} = req.params;
     const changes = req.body;
-    User.update(id, changes)
-    .then(updatedUser => {
-        console.log('putUser', updatedUser)
-        res.status(201).json(updatedUser)
-    })
-    .catch(err => {
+    if(!changes.name || !changes.bio){
+        res.status(400).json({message: "Please provide name and bio for user"})
+    }else{
+        const updatedUser = await User.update(id, changes)
+        if(!updatedUser){
+            res.status(404).json({message: "The user with the specified ID does not exist"})
+    }else
+        {res.status(201).json(updatedUser)}
+    }
+    }catch(err){
         console.error('PUTerr:', err)
         res.status(500).json({message: err.message})
-    })
+    }
 })
 // [DELETE] /api/users/:id	
-server.delete('/api/users/:id', (req,res) => {
+server.delete('/api/users/:id', async (req,res) => {
+    try{ 
     const {id} = req.params;
-    User.remove(id)
-    .then(gone => {
-        console.log('deleteUser', gone)
-        res.status(201).json(gone)
-    })
-    .catch(err => {
-        console.error('DELETEerr', err)
-        res.status(500).json({message: err.message})
-    })
-})
+    const deletedUser = await User.remove(id)
+    console.log('deletedUser', deletedUser)
+    if(!deletedUser){
+        res.status(404).json({message: "The user with the specific ID does not exist."})
+    }else{
+            res.status(201).json(deletedUser)
+        }
+        }catch(err){
+            console.error('DELETEerr', err)
+            res.status(500).json({message: "The user could not be deleted"})
+        }
+    }
+)
 
 
 
