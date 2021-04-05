@@ -51,7 +51,32 @@ server.post('/api/users', (req,res) => {
     })
 })
 // [PUT] /api/users/:id	
+server.put('/api/users/:id', (req,res) => {
+    const {id} = req.params;
+    const changes = req.body;
+    User.update(id, changes)
+    .then(updatedUser => {
+        console.log('putUser', updatedUser)
+        res.status(201).json(updatedUser)
+    })
+    .catch(err => {
+        console.error('PUTerr:', err)
+        res.status(500).json({message: err.message})
+    })
+})
 // [DELETE] /api/users/:id	
+server.delete('/api/users/:id', (req,res) => {
+    const {id} = req.params;
+    User.remove(id)
+    .then(gone => {
+        console.log('deleteUser', gone)
+        res.status(201).json(gone)
+    })
+    .catch(err => {
+        console.error('DELETEerr', err)
+        res.status(500).json({message: err.message})
+    })
+})
 
 
 
